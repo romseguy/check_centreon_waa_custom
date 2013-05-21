@@ -150,7 +150,7 @@ my $listActionNode = $xp->find('/html/body/table/tbody/tr');
 # Find and validate steps intervals to be measured
 #
 if (-e "$directory/$testname.xml") {
-  my $listIntervalNode = $main::desc->find('/config/interval');
+  our $listIntervalNode = $main::desc->find('/config/interval');
 
   if ($listIntervalNode->size() eq 0) {
     print "No interval to measure set";
@@ -191,28 +191,53 @@ my $stepOk = 0;
 $sel->start;
 
 my $start = [ Time::HiRes::gettimeofday( ) ];
+my $startStepId = 0;
+my $startStep = 0;
+my $endStep = 0;
+my $perfdata = "";
+
 foreach my $actionNode ($listActionNode->get_nodelist) {
   if ($status) {
     my $listInfos = $xp->find('./td', $actionNode);
     $step += 1;
+
+    foreach my $intervalNode ($main::listIntervalNode->get_nodelist) {
+      if ($intervalNode->getAttribute('from') == $step) {
+        $startStep = [ Time::HiRes::gettimeofday() ];
+        $startStepId = $step;
+      }
+    }
+
     ($action, $filter, $value) = $listInfos->get_nodelist;
+
     if (trim($action->string_value) eq 'pause') {
       my $sleepTime = 1000;
+
       if (trim($value->string_value) =~ /^\d+$/) {
         $sleepTime = trim($value->string_value);
       }
+
       if (trim($filter->string_value) =~ /^\d+$/) {
         $sleepTime = trim($filter->string_value);
       }
+
       sleep($sleepTime / 1000);
       $stepOk += 1;
     } else {
       $tmpOk = 1;
       eval { $sel->do_command(trim($action->string_value), trim($filter->string_value), trim($value->string_value)) }; $tmpOk = 0 if $@;
+
       if (!$tmpOk) {
         $status = 0;
       } else {
         $stepOk += 1;
+
+        foreach my $intervalNode ($main::listIntervalNode->get_nodelist) {
+          if ($intervalNode->getAttribute('to') == $step) {
+            $endStep = Time::HiRes::tv_interval($startStep);
+            $perfdata .= "'${startStepId}to${step}'=${endStep}s ";
+          }
+        }
       }
     }
   } else {
@@ -240,7 +265,7 @@ if ($status == 0) {
 }
 
 my $availability = sprintf("%.0f", $stepOk*100/$step);
-$output .= " - Execution time = ${end}s Test Ok ${stepOk}/${step} |'time'=${end}s;${warning};${critical} 'availability'=${availability}%;;;0;100\n";
+$output .= " - Execution time = ${end}s Test Ok ${stepOk}/${step} |'time'=${end}s;${warning};${critical} 'availability'=${availability}%;;;0;100 $perfdata\n";
 
 print $output;
 exit $retcode;
