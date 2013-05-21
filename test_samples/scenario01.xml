@@ -1,4 +1,6 @@
-<intervals>
-        <interval from="1" to="3" />
-        <interval from="3" to="5" />
-</intervals>
+<config>
+        <warning>5</warning>
+        <critical>10</critical>
+        <interval from="1" to="2" />
+        <interval from="3" to="4" />
+</config>

@@ -101,25 +101,41 @@ GetOptions(
     #"f" => \$fulldata, "fulldata" => \$fulldata
 );
 
+#
+# Check for config file values
+#
+my $p = XML::Parser->new(NoLWP => 1);
+
+if (-e "$directory/$testname.xml") {
+  our $desc = XML::XPath->new(parser => $p, filename => "$directory/$testname.xml");
+
+  if ($critical eq 0) {
+    $critical = $desc->find('/config/critical')->string_value();
+  }
+
+  if ($warning eq 0) {
+    $warning = $desc->find('/config/warning')->string_value();
+  }
+}
+
 if ($critical eq 0 or $warning eq 0 or $remote eq "" or $testname eq "" or $directory eq "") {
     print "Missing arguments\n\n";
     help(3);
 }
 
-unless ( -d $directory ) {
+unless (-d $directory) {
     print "The directory $directory does not exists\n\n";
     help(3);
 }
 
-unless ( -f "$directory/$testname.html" ) {
-    print "The test file $directory/$testname.html does not exists\n\n";
+unless (-f "$directory/$testname.html") {
+    print "The test file $directory/$testname.html does not exist\n\n";
     help(3);
 }
 
 #
 # Open test file
 #
-my $p = XML::Parser->new(NoLWP => 1);
 my $xp = XML::XPath->new(parser => $p, filename => "$directory/$testname.html");
 
 my $baseurlNode = $xp->find('/html/head/link[@rel="selenium.base"]');
@@ -134,12 +150,17 @@ my $listActionNode = $xp->find('/html/body/table/tbody/tr');
 # Find and validate steps intervals to be measured
 #
 if (-e "$directory/$testname.xml") {
-  my $desc = XML::XPath->new(parser => $p, filename => "$directory/$testname.xml");
-  my $listIntervalNode = $desc->find('/intervals/interval');
+  my $listIntervalNode = $main::desc->find('/config/interval');
+
+  if ($listIntervalNode->size() eq 0) {
+    print "No interval to measure set";
+    exit 2;
+  }
 
   foreach my $intervalNode ($listIntervalNode->get_nodelist) {
     if ($intervalNode->getAttribute('from') >= $intervalNode->getAttribute('to')) {
       print "Invalid scenario description\n\n";
+      exit 2;
     }
   }
 }
