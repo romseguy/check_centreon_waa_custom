@@ -131,6 +131,20 @@ my $baseurl = $baseurlNode->shift->getAttribute('href');
 my $listActionNode = $xp->find('/html/body/table/tbody/tr');
 
 #
+# Find and validate steps intervals to be measured
+#
+if (-e "$directory/$testname.xml") {
+  my $desc = XML::XPath->new(parser => $p, filename => "$directory/$testname.xml");
+  my $listIntervalNode = $desc->find('/intervals/interval');
+
+  foreach my $intervalNode ($listIntervalNode->get_nodelist) {
+    if ($intervalNode->getAttribute('from') >= $intervalNode->getAttribute('to')) {
+      print "Invalid scenario description\n\n";
+    }
+  }
+}
+
+#
 # Parse remote
 #
 my ($remoteHost, $remotePort) = split(/:/, $remote);
