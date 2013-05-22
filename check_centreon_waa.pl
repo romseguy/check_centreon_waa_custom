@@ -202,10 +202,12 @@ foreach my $actionNode ($listActionNode->get_nodelist) {
     $step += 1;
     ($action, $filter, $value) = $listInfos->get_nodelist;
 
-    foreach my $intervalNode ($main::listIntervalNode->get_nodelist) {
-      if ($intervalNode->getAttribute('from') == $step) {
-        $startStep = [ Time::HiRes::gettimeofday() ];
-        $startStepId = $step;
+    if (-e "$directory/$testname.xml") {
+      foreach my $intervalNode ($main::listIntervalNode->get_nodelist) {
+        if ($intervalNode->getAttribute('from') == $step) {
+          $startStep = [ Time::HiRes::gettimeofday() ];
+          $startStepId = $step;
+        }
       }
     }
 
@@ -233,10 +235,12 @@ foreach my $actionNode ($listActionNode->get_nodelist) {
       }
     }
 
-    foreach my $intervalNode ($main::listIntervalNode->get_nodelist) {
-      if ($intervalNode->getAttribute('to') == $step) {
-        $endStep = Time::HiRes::tv_interval($startStep);
-        $perfdata .= "'${startStepId}to${step}'=${endStep}s ";
+    if (-e "$directory/$testname.xml") {
+      foreach my $intervalNode ($main::listIntervalNode->get_nodelist) {
+        if ($intervalNode->getAttribute('to') == $step) {
+          $endStep = Time::HiRes::tv_interval($startStep);
+          $perfdata .= "'${startStepId}to${step}'=${endStep}s ";
+        }
       }
     }
   } else {
