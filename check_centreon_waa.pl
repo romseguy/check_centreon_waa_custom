@@ -200,6 +200,7 @@ foreach my $actionNode ($listActionNode->get_nodelist) {
   if ($status) {
     my $listInfos = $xp->find('./td', $actionNode);
     $step += 1;
+    ($action, $filter, $value) = $listInfos->get_nodelist;
 
     foreach my $intervalNode ($main::listIntervalNode->get_nodelist) {
       if ($intervalNode->getAttribute('from') == $step) {
@@ -207,8 +208,6 @@ foreach my $actionNode ($listActionNode->get_nodelist) {
         $startStepId = $step;
       }
     }
-
-    ($action, $filter, $value) = $listInfos->get_nodelist;
 
     if (trim($action->string_value) eq 'pause') {
       my $sleepTime = 1000;
@@ -231,13 +230,13 @@ foreach my $actionNode ($listActionNode->get_nodelist) {
         $status = 0;
       } else {
         $stepOk += 1;
+      }
+    }
 
-        foreach my $intervalNode ($main::listIntervalNode->get_nodelist) {
-          if ($intervalNode->getAttribute('to') == $step) {
-            $endStep = Time::HiRes::tv_interval($startStep);
-            $perfdata .= "'${startStepId}to${step}'=${endStep}s ";
-          }
-        }
+    foreach my $intervalNode ($main::listIntervalNode->get_nodelist) {
+      if ($intervalNode->getAttribute('to') == $step) {
+        $endStep = Time::HiRes::tv_interval($startStep);
+        $perfdata .= "'${startStepId}to${step}'=${endStep}s ";
       }
     }
   } else {
@@ -264,8 +263,7 @@ if ($status == 0) {
   $output .= "OK";
 }
 
-my $availability = sprintf("%.0f", $stepOk*100/$step);
-$output .= " - Execution time = ${end}s Test Ok ${stepOk}/${step} |'time'=${end}s;${warning};${critical} 'availability'=${availability}%;;;0;100 $perfdata\n";
+$output .= " - Execution time = ${end}s Test Ok ${stepOk}/${step} |'time'=${end}s;${warning};${critical} $perfdata\n";
 
 print $output;
 exit $retcode;
