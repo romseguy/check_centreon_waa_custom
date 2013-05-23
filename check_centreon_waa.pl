@@ -107,7 +107,21 @@ GetOptions(
 my $p = XML::Parser->new(NoLWP => 1);
 
 if (-e "$directory/$testname.xml") {
-  our $desc = XML::XPath->new(parser => $p, filename => "$directory/$testname.xml");
+  my $desc = XML::XPath->new(parser => $p, filename => "$directory/$testname.xml");
+  our $listIntervalNode = $desc->find('/config/interval');
+
+  # validation
+  if ($listIntervalNode->size() eq 0) {
+    print "At least one interval to measure has to be set";
+    exit 2;
+  }
+
+  foreach my $intervalNode ($listIntervalNode->get_nodelist) {
+    if ($intervalNode->getAttribute('from') >= $intervalNode->getAttribute('to')) {
+      print "Invalid scenario description\n\n";
+      exit 2;
+    }
+  }
 
   if ($critical eq 0) {
     $critical = $desc->find('/config/critical')->string_value();
@@ -150,19 +164,7 @@ my $listActionNode = $xp->find('/html/body/table/tbody/tr');
 # Find and validate steps intervals to be measured
 #
 if (-e "$directory/$testname.xml") {
-  our $listIntervalNode = $main::desc->find('/config/interval');
 
-  if ($listIntervalNode->size() eq 0) {
-    print "No interval to measure set";
-    exit 2;
-  }
-
-  foreach my $intervalNode ($listIntervalNode->get_nodelist) {
-    if ($intervalNode->getAttribute('from') >= $intervalNode->getAttribute('to')) {
-      print "Invalid scenario description\n\n";
-      exit 2;
-    }
-  }
 }
 
 #
@@ -270,7 +272,7 @@ if ($status == 0) {
   $output .= "OK";
 }
 
-$output .= " - Execution time = ${end}s Test Ok ${stepOk}/${step} |'time'=${end}s;${warning};${critical} $perfdata\n";
+$output .= " - Execution time = ${end}s - ${stepOk}/${step} steps passed |'time'=${end}s;${warning};${critical} $perfdata\n";
 
 print $output;
 exit $retcode;
