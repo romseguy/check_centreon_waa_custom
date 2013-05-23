@@ -239,7 +239,10 @@ foreach my $actionNode ($listActionNode->get_nodelist) {
       foreach my $intervalNode ($main::listIntervalNode->get_nodelist) {
         if ($intervalNode->getAttribute('to') == $step) {
           $endStep = Time::HiRes::tv_interval($startStep);
-          $perfdata .= "'${startStepId}to${step}'=${endStep}s ";
+          my $intervalWarning = ($intervalNode->getAttribute('warning') > 0) ? $intervalNode->getAttribute('warning') : $warning;
+          my $intervalCritical = ($intervalNode->getAttribute('critical') > 0) ? $intervalNode->getAttribute('critical') : $critical;
+
+          $perfdata .= "'${startStepId}to${step}'=${endStep}s;${intervalWarning};${intervalCritical} ";
         }
       }
     }
