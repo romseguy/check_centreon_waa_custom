@@ -161,13 +161,6 @@ my $baseurl = $baseurlNode->shift->getAttribute('href');
 my $listActionNode = $xp->find('/html/body/table/tbody/tr');
 
 #
-# Find and validate steps intervals to be measured
-#
-if (-e "$directory/$testname.xml") {
-
-}
-
-#
 # Parse remote
 #
 my ($remoteHost, $remotePort) = split(/:/, $remote);
