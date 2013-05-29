@@ -35,6 +35,7 @@
 
 use strict;
 use warnings;
+use File::Copy;
 use Getopt::Long;
 use Time::HiRes;
 use XML::XPath;
@@ -88,6 +89,23 @@ sub trim {
   $string =~ s/^\s+//;
   $string =~ s/\s+$//;
   return $string;
+}
+
+sub AddXmlValue {
+  my ($value, $path, $xmlTree) = @_;
+
+  if (!$xmlTree->exists($path)) {
+    $xmlTree->createNode($path);
+  }
+  else {
+    my $nodeSet = $xmlTree->find($path);
+    my $parentNode = $nodeSet->get_node(1)->getParentNode;
+    my $newNode = XML::XPath::Node::Element->new($value, "");
+    $parentNode->appendChild($newNode);
+  }
+
+  $xmlTree->setNodeText($path . "[last()]", $value);
+  return 0;
 }
 
 Getopt::Long::Configure("bundling");
@@ -193,6 +211,20 @@ my $startStepId = 0;
 my $startStep = 0;
 my $endStep = 0;
 my $perfdata = "";
+
+#
+# Report creation
+#
+if (! -d "$directory/report") {
+  unless(mkdir "$directory/report") {
+    print "Unable to create report directory";
+    exit 2;
+  }
+}
+
+copy("$directory/$testname.html", "$directory/report/$testname.html");
+my $report = XML::XPath->new(parser => $p, filename => "$directory/report/$testname.html");
+AddXmlValue('test', '/html/body/table/thead/tr', $report);
 
 foreach my $actionNode ($listActionNode->get_nodelist) {
   if ($status) {
