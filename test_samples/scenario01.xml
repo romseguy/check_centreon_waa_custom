@@ -1,4 +1,5 @@
 <config>
+		<description>Ceci est un test permettant de ...</description>
         <warning>5</warning>
         <critical>10</critical>
         <interval from="1" to="2" />

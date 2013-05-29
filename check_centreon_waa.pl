@@ -48,6 +48,7 @@ my $warning = 0;
 my $remote = "";
 my $testname = "";
 my $directory = "";
+my $testdesc = "";
 my $fulldata = 0;
 my $retcode = 3;
 my $tmpOk = 1;
@@ -130,6 +131,8 @@ if (-e "$directory/$testname.xml") {
   if ($warning eq 0) {
     $warning = $desc->find('/config/warning')->string_value();
   }
+
+  $testdesc = $desc->find('/config/description')->string_value();
 }
 
 if ($critical eq 0 or $warning eq 0 or $remote eq "" or $testname eq "" or $directory eq "") {
