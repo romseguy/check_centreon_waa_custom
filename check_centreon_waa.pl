@@ -175,7 +175,7 @@ print $REPORT "<title>Test report : $testname</title></head><body>\n";
 print $REPORT "<h1>$testname</h1><ul>\n";
 print $REPORT "<li>Execution date : " . strftime("%d/%m/%Y @ %H:%M", localtime) . "</li>\n";
 print $REPORT "<li>Description : $testdesc</li>\n";
-print $REPORT '</ul><table><thead><tr><td rowspan="1" colspan="3">Steps list</td></tr></thead><tbody>' . "\n";
+print $REPORT '</ul><table cellpadding="1" cellspacing="1" border="1"><thead><tr><td rowspan="1" colspan="3">Steps list</td></tr></thead><tbody>' . "\n";
 
 #
 # Open test file
@@ -279,11 +279,8 @@ foreach my $actionNode ($listActionNode->get_nodelist) {
     }
 
     # Print step to report
-    print $REPORT "<tr";
-    if (!$status) {
-      print $REPORT 'bgcolor="#FF0000"';
-    }
-    print $REPORT "><td>" . $action->string_value . "</td><td>" . $filter->string_value . "</td><td>" . $value->string_value . "</td></tr>\n";
+    my $color = $status ? '#008000' : '#FF0000';
+    print $REPORT '<tr bgcolor="' . $color . '"><td>' . $action->string_value . '</td><td>' . $filter->string_value . '</td><td>' . $value->string_value . "</td></tr>\n";
   } else {
     $step += 1;
   }
