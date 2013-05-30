@@ -2,6 +2,6 @@
 		<description>Ceci est un test permettant de ...</description>
         <warning>5</warning>
         <critical>10</critical>
-        <interval from="1" to="2" />
-        <interval from="3" to="4" />
+        <interval from="1" to="2" warning="2" critical="4" />
+        <interval from="3" to="4" warning="3" critical="5" />
 </config>

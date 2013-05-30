@@ -35,12 +35,12 @@
 
 use strict;
 use warnings;
-use File::Copy;
 use Getopt::Long;
 use Time::HiRes;
 use XML::XPath;
 use XML::XPath::XMLParser;
 use WWW::Selenium;
+use POSIX qw/strftime/;
 
 our $VERSION = "1.0.2";
 
@@ -89,23 +89,6 @@ sub trim {
   $string =~ s/^\s+//;
   $string =~ s/\s+$//;
   return $string;
-}
-
-sub AddXmlValue {
-  my ($value, $path, $xmlTree) = @_;
-
-  if (!$xmlTree->exists($path)) {
-    $xmlTree->createNode($path);
-  }
-  else {
-    my $nodeSet = $xmlTree->find($path);
-    my $parentNode = $nodeSet->get_node(1)->getParentNode;
-    my $newNode = XML::XPath::Node::Element->new($value, "");
-    $parentNode->appendChild($newNode);
-  }
-
-  $xmlTree->setNodeText($path . "[last()]", $value);
-  return 0;
 }
 
 Getopt::Long::Configure("bundling");
@@ -169,6 +152,32 @@ unless (-f "$directory/$testname.html") {
 }
 
 #
+# Report creation
+#
+if (! -d "$directory/report") {
+  mkdir("$directory/report") or die "Cannot create $directory/report $!";
+}
+
+my $reportFile = "$directory/report/$testname.html";
+
+if (-e $reportFile) {
+  unlink($reportFile);
+}
+
+open(my $REPORT, ">>$reportFile") or die "Cannot open $reportFile $!";
+
+# Header
+print $REPORT '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">' . "\n";
+print $REPORT '<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />' . "\n";
+print $REPORT "<title>Test report : $testname</title></head><body>\n";
+
+# Body
+print $REPORT "<h1>$testname</h1><ul>\n";
+print $REPORT "<li>Execution date : " . strftime("%d/%m/%Y @ %H:%M", localtime) . "</li>\n";
+print $REPORT "<li>Description : $testdesc</li>\n";
+print $REPORT '</ul><table><thead><tr><td rowspan="1" colspan="3">Steps list</td></tr></thead><tbody>' . "\n";
+
+#
 # Open test file
 #
 my $xp = XML::XPath->new(parser => $p, filename => "$directory/$testname.html");
@@ -213,25 +222,15 @@ my $endStep = 0;
 my $perfdata = "";
 
 #
-# Report creation
+# Loop over selenium tests
 #
-if (! -d "$directory/report") {
-  unless(mkdir "$directory/report") {
-    print "Unable to create report directory";
-    exit 2;
-  }
-}
-
-copy("$directory/$testname.html", "$directory/report/$testname.html");
-my $report = XML::XPath->new(parser => $p, filename => "$directory/report/$testname.html");
-AddXmlValue('test', '/html/body/table/thead/tr', $report);
-
 foreach my $actionNode ($listActionNode->get_nodelist) {
   if ($status) {
     my $listInfos = $xp->find('./td', $actionNode);
     $step += 1;
     ($action, $filter, $value) = $listInfos->get_nodelist;
 
+    # Start the stopwatch if current step matches an interval's from attribute
     if (-e "$directory/$testname.xml") {
       foreach my $intervalNode ($main::listIntervalNode->get_nodelist) {
         if ($intervalNode->getAttribute('from') == $step) {
@@ -241,6 +240,7 @@ foreach my $actionNode ($listActionNode->get_nodelist) {
       }
     }
 
+    # Execute action/filter/value command
     if (trim($action->string_value) eq 'pause') {
       my $sleepTime = 1000;
 
@@ -265,6 +265,7 @@ foreach my $actionNode ($listActionNode->get_nodelist) {
       }
     }
 
+    # Stop the stopwatch if current step matches an interval's to attribute
     if (-e "$directory/$testname.xml") {
       foreach my $intervalNode ($main::listIntervalNode->get_nodelist) {
         if ($intervalNode->getAttribute('to') == $step) {
@@ -276,6 +277,13 @@ foreach my $actionNode ($listActionNode->get_nodelist) {
         }
       }
     }
+
+    # Print step to report
+    print $REPORT "<tr";
+    if (!$status) {
+      print $REPORT 'bgcolor="#FF0000"';
+    }
+    print $REPORT "><td>" . $action->string_value . "</td><td>" . $filter->string_value . "</td><td>" . $value->string_value . "</td></tr>\n";
   } else {
     $step += 1;
   }
@@ -302,5 +310,6 @@ if ($status == 0) {
 
 $output .= " - Execution time = ${end}s - ${stepOk}/${step} steps passed |'time'=${end}s;${warning};${critical} $perfdata\n";
 
+print $REPORT "</table></body></html>";
 print $output;
 exit $retcode;
