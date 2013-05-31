@@ -308,5 +308,7 @@ if ($status == 0) {
 $output .= " - Execution time = ${end}s - ${stepOk}/${step} steps passed |'time'=${end}s;${warning};${critical} $perfdata\n";
 
 print $REPORT "</table></body></html>";
+close($REPORT);
+
 print $output;
 exit $retcode;
