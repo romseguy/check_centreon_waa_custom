@@ -166,17 +166,6 @@ if (-e $reportFile) {
 
 open(my $REPORT, ">>$reportFile") or die "Cannot open $reportFile $!";
 
-# Header
-print $REPORT '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">' . "\n";
-print $REPORT '<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />' . "\n";
-print $REPORT "<title>Test report : $testname</title></head><body>\n";
-
-# Body
-print $REPORT "<h1>$testname</h1><ul>\n";
-print $REPORT "<li>Execution date : " . strftime("%d/%m/%Y @ %H:%M", localtime) . "</li>\n";
-print $REPORT "<li>Description : $testdesc</li>\n";
-print $REPORT '</ul><table cellpadding="1" cellspacing="1" border="1"><thead><tr><td rowspan="1" colspan="3">Steps list</td></tr></thead><tbody>' . "\n";
-
 #
 # Open test file
 #
@@ -184,6 +173,22 @@ my $xp = XML::XPath->new(parser => $p, filename => "$directory/$testname.html");
 
 my $baseurlNode = $xp->find('/html/head/link[@rel="selenium.base"]');
 my $baseurl = $baseurlNode->shift->getAttribute('href');
+
+#
+# Report Header
+#
+print $REPORT '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">' . "\n";
+print $REPORT '<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />' . "\n";
+print $REPORT "<title>Test report : $testname</title></head><body>\n";
+
+#
+# Report Body
+#
+print $REPORT "<h1>$testname</h1><ul>\n";
+print $REPORT "<li>Base url : $baseurl</li>\n";
+print $REPORT "<li>Execution date : " . strftime("%d/%m/%Y @ %H:%M", localtime) . "</li>\n";
+print $REPORT "<li>Description : $testdesc</li>\n";
+print $REPORT '</ul><table cellpadding="1" cellspacing="1" border="1"><thead><tr><td rowspan="1" colspan="3">Steps list</td></tr></thead><tbody>' . "\n";
 
 #
 # Find list of actions
