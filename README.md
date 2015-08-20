@@ -1,7 +1,6 @@
-# check_centreon_waa_custom
-Execute Selenium tests from Centreon using a custom version of Centreon WAA official plugin.
+You can configure Centreon to use this plugin so you're able to:
 
-## Centreon WAA
-[Centreon WAA](https://download.centreon.com/?tab=Modules#centreon-waa) is a plugin developped to monitor your web apps.
-WAA uses the selenium project in order to play Selenium tests periodically against your web apps.
-It reports the execution time of each testing steps.
+* run a Selenium test according to its HTML specification
+* report back the response time between each testing step to Centreon
+
+It's a fork of the official [Centreon WAA](https://download.centreon.com/?tab=Modules#centreon-waa) plugin.
