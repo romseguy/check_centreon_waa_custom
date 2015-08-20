@@ -1,6 +1,7 @@
 You can configure Centreon to use this plugin so you're able to:
 
-* run a Selenium test according to its HTML specification
+* run Selenium tests according to `scenario.html`
 * report back the response time between each testing step to Centreon
+* trigger alerts whenever a response time exceeds a treshold defined in `scenario.xml`
 
-It's a fork of the official [Centreon WAA](https://download.centreon.com/?tab=Modules#centreon-waa) plugin.
+Fork of the official [Centreon WAA](https://download.centreon.com/?tab=Modules#centreon-waa) plugin.
